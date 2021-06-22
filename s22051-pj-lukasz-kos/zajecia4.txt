@@ -112,4 +112,19 @@ Typ bool (boolean, logiczny) nie występuje w standardzie C89, dlatego należy g
 
 
 Zadanie 3
+Jako jeden z argumentów funkcji możemy przekazać wskaźnik do innej funkcji (np. w celu uzyskania zwracanej wartości od tej funkcji). 
+Taką funkcję,  wykorzystującą wskaźnik do innej funkcji, deklarujemy np. tak:
+*/
+int forAll(int jakis_argument, int (*f)(int, int));
+
+/*
+Można również tworzyć tablice wskaźników do funkcji. Załóżmy, że mamy funkcję:
+*/
+int suma(int pierwsza, int druga);
+/*
+Wówczas tablica ze wskaźnikiem oraz jej definicja będzie wyglądać tak:
+*/
+int (*funkcje[3])(int, int);
+funkcje[0] = suma;
+
 
