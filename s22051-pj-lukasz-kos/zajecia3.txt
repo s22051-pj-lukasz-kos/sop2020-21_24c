@@ -6,7 +6,7 @@ ${0}
 # Każdy kolejny podany argument
 ${n} # gdzie n to numer argumentu, od 1
 
- # Pętlę if deklaruje się 
+ # Wyrażenie if deklaruje się 
 if [ warunek ]; then 
 	# polecenia
 elif [ warunek2 ]; then
