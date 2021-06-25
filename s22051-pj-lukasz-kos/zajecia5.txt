@@ -53,10 +53,4 @@ czyli wait() wstrzymuje proces do czasu zmiany stanu przez dowolne dziecko.
 Można też zamiast odwołania do zmiennej status wpisać NULL i uzyskać, np.
 */
 wait(NULL);
-
- 
-
 */
-
-
-
