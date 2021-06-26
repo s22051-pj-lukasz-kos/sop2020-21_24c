@@ -1,0 +1,46 @@
+/* 
+Zajęcia 6
+
+Obsługa sygnałów
+W pierwszej kolejności należy zaimplementować bibliotekę <signal.h>. Jednakże...
+Z racji tego, że część funkcji tej biblioteki (np. typ sigset_t czy struktura sigaction) nie stanowi standartu języka ANSI C, 
+to należy je zdefiniować przy użyciu makra. Przed 'blokiem' #include należy dopisać 
+*/
+#define _POSIX_SOURCE
+/*
+Co pozwoli na użycie funkcjonalności standardu POSIX w wersji 1. Oczywiście można to zrobić na wiele sposobów, po szczegóły odsyłam tu:
+https://www.gnu.org/software/libc/manual/html_node/Feature-Test-Macros.html#Feature-Test-Macros
+
+Generalnie sygnał jest to przerwanie dostarczone do procesu. Systemy operacyjne używają sygnałów do raportowania wyjątkowych sytuacji np. błędów, 
+eventów czy próśb. 
+Linux umożliwia przechwycenie sygnału oraz zmianę jego standardowego zachowania poprzez użycie funkcji signal lub sigaction.
+sigaction ma to samo zastosowanie co funkcja signal, aczkolwiek pozwala na znacznie większą kontrolę poprzez zdefiniowanie flag 
+w strukturze (SIC) sigaction.
+
+struct sigaction {
+	sighandler_t sa_handler - tutaj ustawiasz nową procedurę obsługi. 
+								Domyślne to: SIG_DFL (signal default, domyślna obsługa) lub SIG_IGN (ignorowanie sygnału).
+								Można również ustawić wskaźnik na własną funkcję obsługującą sygnał.
+	sigset_t sa_mask - zbiór sygnałów, które będą przechwytywane PONAD TO co zdefiniujemy w funkcji sigaction. Stąd nazwa maska.
+						Jako, że chcemy przechwycić tylko jeden sygnał, to ta maska może pozostać pusta. 
+						Puste maski generuje się funkcją int sigemptyset(sigset_t *set).
+	int sa_flags - ustanawia flagi do kontroli sygnału, szczegóły w linku. Na nasze potrzeby ustawiamy 0.
+					https://www.gnu.org/software/libc/manual/html_node/Flags-for-Sigaction.html#Flags-for-Sigaction
+}
+
+A teraz sama funkcja sigaction
+*/
+int sigaction (int signum, const struct sigaction *restrict action, strict sigaction *restrict old-action)
+/* 
+signum - określa sygnał, który chcemy przechwycić. Lista sygnałów pod linkiem
+            https://man7.org/linux/man-pages/man7/signal.7.html
+action - struktura, w której zdefiniowaliśmy nowe procedury obsługi sygnału, maskę i flagi
+old-action - zwraca DOMYŚLNĄ strukturę obsługi sygnału. Nie potrzebujemy tego więc ustawiamy NULL.
+
+Po tak zdefiniowanej strukturze sigaction oraz użytej funkcji sigaction, należy przede wszystkim pamiętać, że napisaną przez nas funkcję do obsługi sygnału, 
+deklarujemy w strukturze sigaction przekazując wskaźnik do funkcji pod element sa_handler. 
+
+
+Gniazda
+
+*/
