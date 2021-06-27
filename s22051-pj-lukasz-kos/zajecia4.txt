@@ -108,7 +108,7 @@ Obszar pamięci zarezerwowany tą funkcją jest blokowany przed dostępem, więc
 */
 free(buffet);
 /*
-Typ bool (boolean, logiczny) nie występuje w standardzie C89, dlatego należy go implementować dodatkową biblioteką stdbool.h. 
+Typ bool (boolean, logiczny) nie występuje w standardzie C89, dlatego należy go dołączyć dodatkową biblioteką stdbool.h. 
 
 
 Zadanie 3

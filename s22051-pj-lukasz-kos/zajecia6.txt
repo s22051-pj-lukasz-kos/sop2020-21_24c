@@ -2,7 +2,7 @@
 Zajęcia 6
 
 Obsługa sygnałów
-W pierwszej kolejności należy zaimplementować bibliotekę <signal.h>. Jednakże...
+W pierwszej kolejności należy dołączyć bibliotekę <signal.h>. Jednakże...
 Z racji tego, że część funkcji tej biblioteki (np. typ sigset_t czy struktura sigaction) nie stanowi standartu języka ANSI C, 
 to należy je zdefiniować przy użyciu makra. Przed 'blokiem' #include należy dopisać 
 */
@@ -46,7 +46,7 @@ Gniazda to uogólniony kanał komunikacji międzyprocesorowej. Podobnie jak poto
 Gniazda obsługują komunikację między niepowiązanymi procesami, a nawet między procesami działającymi na różnych komputerach, 
 które komunikuja się przez sieć. 
 
-Aby moć zastosować funkcje związane z gniazdami oraz stworzyć gniazdo, należy zaimplementować w kodzie bibliotekę <sys/socket.h>
+Aby moć zastosować funkcje związane z gniazdami oraz stworzyć gniazdo, należy dołączyć w kodzie bibliotekę <sys/socket.h>
 Gniazdo tworzymy funkcją socket
 int socket (int namespace, int style, int protocol)
 	namespace : PF_LOCAL (lokalna przestrzeń nazw) lub PF_INET (internetowa przestrzeń nazw)
@@ -67,7 +67,7 @@ int connect (int socket, struct sockaddr *addr, socklen_t length)
 Nazwa gniazda to adres. Nowo stworzone gniazdo (przy pomocy funkcji socket) nie ma adresu. Bez adresu inne procesy nie ustalą połączenia z gniazdem. 
 Aby przypisać gniazdu adres należy użyć funkcji bind, przekazując ją w formie wskaźnika do struktury sockaddr.
 
-Aby użyć typów danych niezbędnych do zdefiniowania adresu gniazda w internetowej przestrzenii nazw należy zaimplementować bibliotekę <netinet/in.h>
+Aby użyć typów danych niezbędnych do zdefiniowania adresu gniazda w internetowej przestrzenii nazw należy dołączyć bibliotekę <netinet/in.h>
 i użyć jednego z dwóch struktur, opisujących adres w zależności od protokołu
 
 struct sockaddr_in {
@@ -83,7 +83,7 @@ Aby sprawdzić adres gniazda internetowego (przeczytać go) należy użyć funkc
 int getsockname (int socket, struct sockaddr *addr, socklen_t *length-ptr)
 
 
-Aby użyć funkcji do zarządzania internetowymi adresami należy zaimplementować funkcję <arpa/inet.h>. Lista tych funkcji znajduje się poniżej:
+Aby użyć funkcji do zarządzania internetowymi adresami należy dołączyć funkcję <arpa/inet.h>. Lista tych funkcji znajduje się poniżej:
 https://www.gnu.org/software/libc/manual/html_node/Host-Address-Functions.html
 
 Nazwy hosta można zdefiniować poprzez funkcje z biblioteki <netdb.h>. Lista jest tutaj:
