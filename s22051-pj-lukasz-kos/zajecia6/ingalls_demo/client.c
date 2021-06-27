@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
 
     /* struktura do przechowywania adresu hosta
     struct  hostent {
-        char    *h_name;         oficjalna nazwa hosta 
+        char    *h_name;         oficjalna nazwa hosta, adres IPv4 w ciągu cyfr i kropek
         char    **h_aliases;     lista nazw symbolicznych 
         int     h_addrtype;      typ adresu hosta, AF_INET 
         int     h_length;        długość adresu w bitach 
