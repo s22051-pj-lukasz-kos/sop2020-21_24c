@@ -65,21 +65,7 @@ na żądanie połączenia. Do ustanawiania połączenia można wykorzystać funk
 int connect (int socket, struct sockaddr *addr, socklen_t length)
 	
 Nazwa gniazda to adres. Nowo stworzone gniazdo (przy pomocy funkcji socket) nie ma adresu. Bez adresu inne procesy nie ustalą połączenia z gniazdem. 
-Aby przypisać gniazdu adres należy użyć funkcji bind oraz getsockname, przekazując ją w formie wskaźnika do struktury sockaddr.
-
-struct sockaddr {
-	short int sa_family - format adresu (address format). Wyróżniamy:
-						AF_LOCAL 	- local namespace, równoznaczne AF_UNIX oraz AF_FILE
-						AF_INET 	- Internet namespace, protokół IPv4
-						AF_INET6 	- protokół IPv6
-						char sa_data[14] - właściwy adres.
-}
-
-Aby przypisać gniazdo do adresu należy użyć funkcji bind:
-int bind (int socket, struct sockaddr *addr, socklen_t length)
-
-Aby sprawdzić adres gniazda internetowego (przeczytać go) należy użyć funkcji getsockname
-int getsockname (int socket, struct sockaddr *addr, socklen_t *length-ptr)
+Aby przypisać gniazdu adres należy użyć funkcji bind, przekazując ją w formie wskaźnika do struktury sockaddr.
 
 Aby użyć typów danych niezbędnych do zdefiniowania adresu gniazda w internetowej przestrzenii nazw należy zaimplementować bibliotekę <netinet/in.h>
 i użyć jednego z dwóch struktur, opisujących adres w zależności od protokołu
@@ -89,6 +75,14 @@ struct sockaddr_in {
 	struct in_addr sin_addr 		- adres IPv4
 	unsigned short int sin_port 	- numer portu
 }
+
+Aby przypisać gniazdo do adresu należy użyć funkcji bind:
+int bind (int socket, struct sockaddr *addr, socklen_t length)
+
+Aby sprawdzić adres gniazda internetowego (przeczytać go) należy użyć funkcji getsockname
+int getsockname (int socket, struct sockaddr *addr, socklen_t *length-ptr)
+
+
 Aby użyć funkcji do zarządzania internetowymi adresami należy zaimplementować funkcję <arpa/inet.h>. Lista tych funkcji znajduje się poniżej:
 https://www.gnu.org/software/libc/manual/html_node/Host-Address-Functions.html
 
@@ -102,9 +96,9 @@ Każdy interfejs sieciowy ma nazwę. Funkcje związane z interfejsami znajdują 
 https://www.gnu.org/software/libc/manual/html_node/Interface-Naming.html#Interface-Naming
 
 
-Aby serwer mógł zaakceptować połączenie na gnieździe, niezbędne będzie zastosowanie funkcji listen. Po tym każde kolejne nadchodzące połączenie 
-można zakceptować funkcją accept. accept tworzy nowe gniazdo, które uczesniczy w połączeniu. Natomiast pierwotne gniazdo służy do nasłuchu 
-kolejnych połączeń.
+Aby serwer mógł zaakceptować połączenie na gnieździe, najpierw trzeba będzie zrobić nasłuch na gniazdo. Do tego służy funkcja listen. 
+Następnie można zaakceptować nadchodzące połączenie funkcją accept. accept tworzy nowe gniazdo do komunikacji. Natomiast pierwotne gniazdo 
+służy do nasłuchu kolejnych, pozostałych połączeń.
 int listen (int socket, int n), n określa długość kolejki nadchodzących połączeń
 int accept (int socket, struct sockaddr *addr, socklen_t *length_ptr), funkcja zwraca deskryptor do nowego gniazda, które stanowi część połączenia
 
@@ -117,5 +111,17 @@ int write(int file_descriptor, char *buffer, int size)
 Do odbierania danych służy recv lub read (poodobnie jak wyżej).
 ssize_t recv (int socket, void *buffer, size_t size, int flags)
 int read(int file_descriptor, char *buffer, int size)
-*/
+
+
+W skrócie po stronie klienta należy:
+1. Utworzyć gniazdo przy pomocy socket()
+2. Połączyć gniazdo z adresem serwera używając connect()
+3. Wysyłać i otrzymywać dane poprzez write() i read() 
+
+Po stronie serwera należy:
+1. Utworzyć gniazdo przy pomocy socket()
+2. Połączyć gniazdo z adresem używając bind(). 
+3. Nasłuchiwać połączeń przy użyciu listen()
+4. Akceptować połączenia przy użyciu accept()
+5. Wysyłać i otrzymywać dane poprzez write() i read() 
 */
