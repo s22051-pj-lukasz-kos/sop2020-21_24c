@@ -42,5 +42,80 @@ deklarujemy w strukturze sigaction przekazując wskaźnik do funkcji pod element
 
 
 Gniazda
+Gniazda to uogólniony kanał komunikacji międzyprocesorowej. Podobnie jak potok, gniazdo jest reprezentowane jako deskryptor pliku. 
+Gniazda obsługują komunikację między niepowiązanymi procesami, a nawet między procesami działającymi na różnych komputerach, 
+które komunikuja się przez sieć. 
 
+Aby moć zastosować funkcje związane z gniazdami oraz stworzyć gniazdo, należy zaimplementować w kodzie bibliotekę <sys/socket.h>
+Gniazdo tworzymy funkcją socket
+int socket (int namespace, int style, int protocol)
+	namespace : PF_LOCAL (lokalna przestrzeń nazw) lub PF_INET (internetowa przestrzeń nazw)
+	style : rodzaje komunikacji
+		int SOCK_STREAM - podobny do potoku, połączenie ze zdalnym gniazdem i pewny, ale wolniejszy przesył informacji
+		int SOCK_DGRAM - datagram, przesyła dane w formie pakietów na zadany adres, nie bacząc na kolejność przesyłu. Jeśli pakiet nie został dostarczony 
+		w całości jest wysyłany jeszcze raz. Szybki, ale niedokładny sposób przesyłu danych.
+	protocol : 0
+
+Gdy skończyłeś korzystać z gniazda, możesz go zamknąć funkcją close. 
+Można ustanawiać pary gniazd za pomocą funkcji socketpair. Ich działanie jest bardzo podobne do potoku i kolejki FIFO, z tą różnicą, że 
+komunikacja jest dwukierunkowa.
+
+Tworzenie połączenie jest asymetryczne: jedna strona (klient) żąda połączenia, podczas gdy druga strona (serwer) tworzy gniazdo i czeka 
+na żądanie połączenia. Do ustanawiania połączenia można wykorzystać funkcję connect
+int connect (int socket, struct sockaddr *addr, socklen_t length)
+	
+Nazwa gniazda to adres. Nowo stworzone gniazdo (przy pomocy funkcji socket) nie ma adresu. Bez adresu inne procesy nie ustalą połączenia z gniazdem. 
+Aby przypisać gniazdu adres należy użyć funkcji bind oraz getsockname, przekazując ją w formie wskaźnika do struktury sockaddr.
+
+struct sockaddr {
+	short int sa_family - format adresu (address format). Wyróżniamy:
+						AF_LOCAL 	- local namespace, równoznaczne AF_UNIX oraz AF_FILE
+						AF_INET 	- Internet namespace, protokół IPv4
+						AF_INET6 	- protokół IPv6
+						char sa_data[14] - właściwy adres.
+}
+
+Aby przypisać gniazdo do adresu należy użyć funkcji bind:
+int bind (int socket, struct sockaddr *addr, socklen_t length)
+
+Aby sprawdzić adres gniazda internetowego (przeczytać go) należy użyć funkcji getsockname
+int getsockname (int socket, struct sockaddr *addr, socklen_t *length-ptr)
+
+Aby użyć typów danych niezbędnych do zdefiniowania adresu gniazda w internetowej przestrzenii nazw należy zaimplementować bibliotekę <netinet/in.h>
+i użyć jednego z dwóch struktur, opisujących adres w zależności od protokołu
+
+struct sockaddr_in {
+	sa_family_t sin_family 		- format adresu, AF_INET
+	struct in_addr sin_addr 		- adres IPv4
+	unsigned short int sin_port 	- numer portu
+}
+Aby użyć funkcji do zarządzania internetowymi adresami należy zaimplementować funkcję <arpa/inet.h>. Lista tych funkcji znajduje się poniżej:
+https://www.gnu.org/software/libc/manual/html_node/Host-Address-Functions.html
+
+Nazwy hosta można zdefiniować poprzez funkcje z biblioteki <netdb.h>. Lista jest tutaj:
+https://www.gnu.org/software/libc/manual/html_node/Host-Names.html
+
+Adres gniazda w internetowej przestrzenii nazw składa się z adresu internetowego urządzenia oraz numeru portu, który rozróżnia gniazda dla 
+danego urządzenia. Zakres portów to 16 bit (0 - 65535). Standardowe serwery mają zarezerwowany zakres portów.
+
+Każdy interfejs sieciowy ma nazwę. Funkcje związane z interfejsami znajdują się w bibliotece  <net/if.h> i można ogarnąć je tu:
+https://www.gnu.org/software/libc/manual/html_node/Interface-Naming.html#Interface-Naming
+
+
+Aby serwer mógł zaakceptować połączenie na gnieździe, niezbędne będzie zastosowanie funkcji listen. Po tym każde kolejne nadchodzące połączenie 
+można zakceptować funkcją accept. accept tworzy nowe gniazdo, które uczesniczy w połączeniu. Natomiast pierwotne gniazdo służy do nasłuchu 
+kolejnych połączeń.
+int listen (int socket, int n), n określa długość kolejki nadchodzących połączeń
+int accept (int socket, struct sockaddr *addr, socklen_t *length_ptr), funkcja zwraca deskryptor do nowego gniazda, które stanowi część połączenia
+
+getpeername zwraca adres gniazda, do którego jest podłączone dane gniazdo.
+
+Do przesyłania danych możesz użyć funkcji send lub write. write nie ma argumentu flags.
+ssize_t send (int socket, const void *buffer, size_t size, int flags)
+int write(int file_descriptor, char *buffer, int size)
+
+Do odbierania danych służy recv lub read (poodobnie jak wyżej).
+ssize_t recv (int socket, void *buffer, size_t size, int flags)
+int read(int file_descriptor, char *buffer, int size)
+*/
 */
