@@ -16,26 +16,25 @@ eventów czy próśb.
 Linux umożliwia przechwycenie sygnału oraz zmianę jego standardowego zachowania poprzez użycie funkcji signal lub sigaction.
 sigaction ma to samo zastosowanie co funkcja signal, aczkolwiek pozwala na znacznie większą kontrolę poprzez zdefiniowanie flag 
 w strukturze (SIC) sigaction.
-
+*/
 struct sigaction {
-	sighandler_t sa_handler - tutaj ustawiasz nową procedurę obsługi. 
+	sighandler_t sa_handler /* tutaj ustawiasz nową procedurę obsługi. 
 								Domyślne to: SIG_DFL (signal default, domyślna obsługa) lub SIG_IGN (ignorowanie sygnału).
-								Można również ustawić wskaźnik na własną funkcję obsługującą sygnał.
-	sigset_t sa_mask - zbiór sygnałów, które będą przechwytywane PONAD TO co zdefiniujemy w funkcji sigaction. Stąd nazwa maska.
+								Można również ustawić wskaźnik na własną funkcję obsługującą sygnał. */
+	sigset_t sa_mask /* zbiór sygnałów, które będą przechwytywane PONAD TO co zdefiniujemy w funkcji sigaction. Stąd nazwa maska.
 						Jako, że chcemy przechwycić tylko jeden sygnał, to ta maska może pozostać pusta. 
-						Puste maski generuje się funkcją int sigemptyset(sigset_t *set).
-	int sa_flags - ustanawia flagi do kontroli sygnału, szczegóły w linku. Na nasze potrzeby ustawiamy 0.
-					https://www.gnu.org/software/libc/manual/html_node/Flags-for-Sigaction.html#Flags-for-Sigaction
+						Puste maski generuje się funkcją int sigemptyset(sigset_t *set). */
+	int sa_flags /* ustanawia flagi do kontroli sygnału, szczegóły w linku. Na nasze potrzeby ustawiamy 0.
+					https://www.gnu.org/software/libc/manual/html_node/Flags-for-Sigaction.html#Flags-for-Sigaction */
 }
-
+/*
 A teraz sama funkcja sigaction
 */
-int sigaction (int signum, const struct sigaction *restrict action, strict sigaction *restrict old-action)
+int sigaction (int signum, /* określa sygnał, który chcemy przechwycić */
+                const struct sigaction *restrict action, /* struktura, w której zdefiniowaliśmy nowe procedury obsługi sygnału, maskę i flagi */
+                strict sigaction *restrict old-action) /* zwraca DOMYŚLNĄ strukturę obsługi sygnału, ustawiamy NULL */
 /* 
-signum - określa sygnał, który chcemy przechwycić. Lista sygnałów pod linkiem
-            https://man7.org/linux/man-pages/man7/signal.7.html
-action - struktura, w której zdefiniowaliśmy nowe procedury obsługi sygnału, maskę i flagi
-old-action - zwraca DOMYŚLNĄ strukturę obsługi sygnału. Nie potrzebujemy tego więc ustawiamy NULL.
+Lista sygnałów pod linkiem https://man7.org/linux/man-pages/man7/signal.7.html
 
 Po tak zdefiniowanej strukturze sigaction oraz użytej funkcji sigaction, należy przede wszystkim pamiętać, że napisaną przez nas funkcję do obsługi sygnału, 
 deklarujemy w strukturze sigaction przekazując wskaźnik do funkcji pod element sa_handler. 
@@ -48,72 +47,89 @@ które komunikuja się przez sieć.
 
 Aby moć zastosować funkcje związane z gniazdami oraz stworzyć gniazdo, należy dołączyć w kodzie bibliotekę <sys/socket.h>
 Gniazdo tworzymy funkcją socket
-int socket (int namespace, int style, int protocol)
-	namespace : PF_LOCAL (lokalna przestrzeń nazw) lub PF_INET (internetowa przestrzeń nazw)
-	style : rodzaje komunikacji
-		int SOCK_STREAM - podobny do potoku, połączenie ze zdalnym gniazdem i pewny, ale wolniejszy przesył informacji
-		int SOCK_DGRAM - datagram, przesyła dane w formie pakietów na zadany adres, nie bacząc na kolejność przesyłu. Jeśli pakiet nie został dostarczony 
-		w całości jest wysyłany jeszcze raz. Szybki, ale niedokładny sposób przesyłu danych.
-	protocol : 0
-
+*/
+int socket (int namespace,  /* PF_LOCAL (lokalna przestrzeń nazw) lub PF_INET (internetowa przestrzeń nazw) */
+            int style,      /* rodzaje komunikacji, na nasze potrzeby SOCK_STREAM */
+            int protocol)   /* 0 oznacza domyślny protokół */
+/*
 Gdy skończyłeś korzystać z gniazda, możesz go zamknąć funkcją close. 
 Można ustanawiać pary gniazd za pomocą funkcji socketpair. Ich działanie jest bardzo podobne do potoku i kolejki FIFO, z tą różnicą, że 
 komunikacja jest dwukierunkowa.
 
 Tworzenie połączenie jest asymetryczne: jedna strona (klient) żąda połączenia, podczas gdy druga strona (serwer) tworzy gniazdo i czeka 
-na żądanie połączenia. Do ustanawiania połączenia można wykorzystać funkcję connect
-int connect (int socket, struct sockaddr *addr, socklen_t length)
-	
+na żądanie połączenia. 
+
+Po stronie serwera.
 Nazwa gniazda to adres. Nowo stworzone gniazdo (przy pomocy funkcji socket) nie ma adresu. Bez adresu inne procesy nie ustalą połączenia z gniazdem. 
-Aby przypisać gniazdu adres należy użyć funkcji bind, przekazując ją w formie wskaźnika do struktury sockaddr.
-
-Aby użyć typów danych niezbędnych do zdefiniowania adresu gniazda w internetowej przestrzenii nazw należy dołączyć bibliotekę <netinet/in.h>
-i użyć jednego z dwóch struktur, opisujących adres w zależności od protokołu
-
-struct sockaddr_in {
-	sa_family_t sin_family 		- format adresu, AF_INET
-	struct in_addr sin_addr 		- adres IPv4
-	unsigned short int sin_port 	- numer portu
-}
-
-Aby przypisać gniazdo do adresu należy użyć funkcji bind:
-int bind (int socket, struct sockaddr *addr, socklen_t length)
-
-Aby sprawdzić adres gniazda internetowego (przeczytać go) należy użyć funkcji getsockname
-int getsockname (int socket, struct sockaddr *addr, socklen_t *length-ptr)
-
-
-Aby użyć funkcji do zarządzania internetowymi adresami należy dołączyć funkcję <arpa/inet.h>. Lista tych funkcji znajduje się poniżej:
-https://www.gnu.org/software/libc/manual/html_node/Host-Address-Functions.html
-
-Nazwy hosta można zdefiniować poprzez funkcje z biblioteki <netdb.h>. Lista jest tutaj:
-https://www.gnu.org/software/libc/manual/html_node/Host-Names.html
-
 Adres gniazda w internetowej przestrzenii nazw składa się z adresu internetowego urządzenia oraz numeru portu, który rozróżnia gniazda dla 
 danego urządzenia. Zakres portów to 16 bit (0 - 65535). Standardowe serwery mają zarezerwowany zakres portów.
 
-Każdy interfejs sieciowy ma nazwę. Funkcje związane z interfejsami znajdują się w bibliotece  <net/if.h> i można ogarnąć je tu:
-https://www.gnu.org/software/libc/manual/html_node/Interface-Naming.html#Interface-Naming
+Aby przypisać gniazdu adres należy użyć funkcji bind, przekazując ją w formie wskaźnika do struktury sockaddr.
+int bind (int socket, struct sockaddr *addr, socklen_t length)
 
-
+Aby użyć typów danych niezbędnych do zdefiniowania formatu adresu gniazda w internetowej przestrzenii nazw należy dołączyć bibliotekę <netinet/in.h>
+i użyć struktury, opisujących adres w zależności od protokołu
+*/
+struct sockaddr_in {
+	sa_family_t sin_family 		/* format adresu, AF_INET */
+	struct in_addr sin_addr 	/* adres IPv4 */
+	unsigned short int sin_port /* numer portu */
+}
+/*
 Aby serwer mógł zaakceptować połączenie na gnieździe, najpierw trzeba będzie zrobić nasłuch na gniazdo. Do tego służy funkcja listen. 
 Następnie można zaakceptować nadchodzące połączenie funkcją accept. accept tworzy nowe gniazdo do komunikacji. Natomiast pierwotne gniazdo 
 służy do nasłuchu kolejnych, pozostałych połączeń.
-int listen (int socket, int n), n określa długość kolejki nadchodzących połączeń
-int accept (int socket, struct sockaddr *addr, socklen_t *length_ptr), funkcja zwraca deskryptor do nowego gniazda, które stanowi część połączenia
+*/
+int listen (int socket, int n) /* n określa długość kolejki nadchodzących połączeń */
+int accept (int socket, struct sockaddr *addr, socklen_t *length_ptr) /* funkcja zwraca deskryptor do nowego gniazda, które stanowi część połączenia
 
-getpeername zwraca adres gniazda, do którego jest podłączone dane gniazdo.
 
 Do przesyłania danych możesz użyć funkcji send lub write. write nie ma argumentu flags.
+*/
 ssize_t send (int socket, const void *buffer, size_t size, int flags)
 int write(int file_descriptor, char *buffer, int size)
-
+/*
 Do odbierania danych służy recv lub read (poodobnie jak wyżej).
+*/
 ssize_t recv (int socket, void *buffer, size_t size, int flags)
 int read(int file_descriptor, char *buffer, int size)
 
+/*
+Po stronie klienta
+W pierwszej kolejności należy ustawić gniazdo po stronie klienta. Robi się to podobnie jak na serwerze.
 
-W skrócie po stronie klienta należy:
+Następnie należy zdefiniować nazwy hosta dla serwera (w tym m.in. nazwy symboliczne, np. gnu.org). 
+Taką nazwę ustalamy u klienta (bo to on z niego korzysta) używając struktury hostent z biblioteki <netdb.h>.
+*/
+struct  hostent {
+        char    *h_name;		/* oficjalna nazwa hosta */
+        char    **h_aliases;	/* lista nazw symbolicznych */
+        int     h_addrtype;     /* typ adresu hosta, AF_INET */
+        int     h_length;		/* długość adresu w bitach */
+        char    **h_addr_list;	/* wskaźnik na listę adresów sieciowych, które kryją się za nazwą hosta */
+};
+/*
+Do tworzenia takiej struktury służy funkcja gethostbyname, która zwraca wskaźnik do struktury hostent.
+*/
+struct hostent * gethostbyname (const char *name)
+
+/*
+Potem definiujemy format adresu po stronie SERWERA i jego port (wykorzystując strukturę sockaddr_in). Robi się to tak samo jak na serwerze.
+
+
+Następnie należy połączyć gniazdo klienta z adresem serwera używając connect().
+*/
+int connect (int socket, 			/* gniazdo po stronie klienta */
+			struct sockaddr *addr, 	/* adres serwera */
+			socklen_t length) 		/* długość adresu serwera */
+
+/*
+Na końcu dokonujemy komunikacji z serwerem opierając się na funkcjach read oraz write. Deskryptor pliku dla obu funkcji to gniazdo klienta.
+
+
+W SKRÓCIE. 
+
+Po stronie klienta należy:
 1. Utworzyć gniazdo przy pomocy socket()
 2. Połączyć gniazdo z adresem serwera używając connect()
 3. Wysyłać i otrzymywać dane poprzez write() i read() 
