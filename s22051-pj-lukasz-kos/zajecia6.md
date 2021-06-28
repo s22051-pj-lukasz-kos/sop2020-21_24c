@@ -1,15 +1,15 @@
 # Zajęcia 6
 ## Obsługa sygnałów
 W pierwszej kolejności należy dołączyć bibliotekę `<signal.h>`. Jednakże...
-Z racji tego, że część funkcji tej biblioteki (np. `typ sigset_t` czy struktura `sigaction`) nie stanowi standartu języka ANSI C, to należy je zdefiniować przy użyciu makra. Przed 'blokiem' #include należy dopisać
+Z racji tego, że część funkcji tej biblioteki (np. typ `sigset_t` czy struktura `sigaction`) nie stanowi standartu języka ANSI C, to należy je zdefiniować przy użyciu makra. Przed 'blokiem' `#include` należy dopisać
 ```c
 #define _POSIX_SOURCE
 ```
 Co pozwoli na użycie funkcjonalności standardu POSIX w wersji 1. Oczywiście można to zrobić na wiele sposobów, po szczegóły odsyłam [TU](https://www.gnu.org/software/libc/manual/html_node/Feature-Test-Macros.html#Feature-Test-Macros).
 
 Generalnie sygnał jest to przerwanie dostarczone do procesu. Systemy operacyjne używają sygnałów do raportowania wyjątkowych sytuacji np. błędów, eventów czy próśb.
-Linux umożliwia przechwycenie sygnału oraz zmianę jego standardowego zachowania poprzez użycie funkcji `signal` lub `sigaction`.
-`sigaction` ma to samo zastosowanie co funkcja `signal`, aczkolwiek pozwala na znacznie większą kontrolę poprzez zdefiniowanie flag w strukturze (SIC) `sigaction`.
+Linux umożliwia przechwycenie sygnału oraz zmianę jego standardowego zachowania poprzez użycie funkcji `signal()` lub `sigaction()`.
+`sigaction()` ma to samo zastosowanie co funkcja `signal()`, aczkolwiek pozwala na znacznie większą kontrolę poprzez zdefiniowanie flag w strukturze (SIC) `sigaction`.
 ```c
 struct sigaction {
 	/* tutaj ustawiasz nową procedurę obsługi.
@@ -35,26 +35,26 @@ int sigaction
 	 strict sigaction *restrict old-action) /* zwraca DOMYŚLNĄ strukturę obsługi sygnału, ustawiamy NULL */
 ```
 Lista sygnałów do przechwycenia znajduje się [TUTAJ](https://man7.org/linux/man-pages/man7/signal.7.html).
-Po tak zdefiniowanej strukturze sigaction oraz użytej funkcji sigaction, należy przede wszystkim pamiętać, że napisaną przez nas funkcję do obsługi sygnału, deklarujemy w strukturze `sigaction` przekazując wskaźnik do funkcji pod element `sa_handler`.
+Po tak zdefiniowanej strukturze sigaction oraz użytej funkcji `sigaction()`, należy przede wszystkim pamiętać, że napisaną przez nas funkcję do obsługi sygnału, deklarujemy w strukturze `sigaction` przekazując wskaźnik do funkcji pod element `sa_handler`.
 ## Gniazda
 Gniazda to uogólniony kanał komunikacji międzyprocesorowej. Podobnie jak potok, gniazdo jest reprezentowane jako deskryptor pliku.
 Gniazda obsługują komunikację między niepowiązanymi procesami, a nawet między procesami działającymi na różnych komputerach, które komunikuja się przez sieć.
 Aby moć zastosować funkcje związane z gniazdami oraz stworzyć gniazdo, należy dołączyć w kodzie bibliotekę `<sys/socket.h>`
 
-Gniazdo tworzymy funkcją `socket`
+Gniazdo tworzymy funkcją `socket()`
 ```c
 int socket (int namespace, /* PF_LOCAL (lokalna przestrzeń nazw) lub PF_INET (internetowa przestrzeń nazw) */
-	    int style, /* rodzaje komunikacji, na nasze potrzeby SOCK_STREAM */
+	    int style, /* rodzaj gniazda, na nasze potrzeby SOCK_STREAM */
 	    int protocol) /* 0 oznacza domyślny protokół */
 ```
 `socket()` zwraca deskryptor pliku do gniazda. Jeśli operacja się nie powiedzie to zwróci -1.
 
-Gdy skończyłeś korzystać z gniazda, możesz go zamknąć funkcją `close`.
-Można ustanawiać pary gniazd za pomocą funkcji `socketpair`. Ich działanie jest bardzo podobne do potoku i kolejki FIFO, z tą różnicą, że komunikacja jest dwukierunkowa.
+Gdy skończyłeś korzystać z gniazda, możesz go zamknąć funkcją `close()`.
+Można ustanawiać pary gniazd za pomocą funkcji `socketpair()`. Ich działanie jest bardzo podobne do potoku i kolejki FIFO, z tą różnicą, że komunikacja jest dwukierunkowa.
 
-Tworzenie połączenie jest asymetryczne: jedna strona (klient) żąda połączenia, podczas gdy druga strona (serwer) tworzy gniazdo i czeka na żądanie połączenia.
+Połączenie internetowe jest asymetryczne: jedna strona (klient) żąda połączenia, podczas gdy druga strona (serwer) tworzy gniazdo i czeka na żądanie połączenia.
 ### Po stronie serwera.
-Nazwa gniazda to adres. Nowo stworzone gniazdo (przy pomocy funkcji `socket`) nie ma adresu. Bez adresu inne procesy nie ustalą połączenia z gniazdem.
+Nazwa gniazda to adres. Nowo stworzone gniazdo (przy pomocy funkcji `socket()`) nie ma adresu. Bez adresu inne procesy nie ustalą połączenia z gniazdem.
 
 Adres gniazda w internetowej przestrzenii nazw składa się z adresu internetowego urządzenia oraz numeru portu, który rozróżnia gniazda dla danego urządzenia. Zakres portów to 16 bit (0 - 65535). 
 Standardowe serwery mają zarezerwowany zakres portów, szczegóły dalej.
@@ -97,19 +97,21 @@ int listen (int socket, int n) /* n określa długość kolejki nadchodzących p
 ```
 Jeśli ustanowienie nasłuchu się nie powiedzie, funkcja zwróci wartość -1.
 
-Następnie można zaakceptować nadchodzące połączenie funkcją `accept`. `accept` tworzy nowe gniazdo do komunikacji. Wówczas funkcja zwraca deskryptor do nowego gniazda, które stanowi część połączenia
+Następnie można zaakceptować nadchodzące połączenie funkcją `accept()`. `accept()` tworzy nowe gniazdo do komunikacji. Wówczas funkcja zwraca deskryptor do nowego gniazda, które stanowi część połączenia.
 Natomiast pierwotne gniazdo służy do nasłuchu kolejnych, pozostałych połączeń.
 ```c
-int accept (int socket, struct sockaddr *addr, socklen_t *length_ptr)
+int accept (int socket, /* stare gniazdo nasłuchowe */
+			struct sockaddr *addr, /* adres klienta */
+			socklen_t *length_ptr) /* WSKAŹNIK na długość adresu klienta */
 ```  
 Jeśl nastąpi błąd, funkcja zwróci -1.
 
-Do przesyłania danych możesz użyć funkcji `send` lub `write`. `write` nie ma argumentu flags.
+Do przesyłania danych możesz użyć funkcji `send()` lub `write()`. `write()` nie ma argumentu flags.
 ```c
 ssize_t send (int socket, const void *buffer, size_t size, int flags)
 int write(int file_descriptor, char *buffer, int size)
 ```
-Do odbierania danych służy `recv` lub `read` (poodobnie jak wyżej).
+Do odbierania danych służy `recv()` lub `read()` (poodobnie jak wyżej).
 ```c
 ssize_t recv (int socket, void *buffer, size_t size, int flags)
 int read(int file_descriptor, char *buffer, int size)
@@ -127,7 +129,7 @@ struct hostent {
 	char **h_addr_list; /* wskaźnik na listę adresów sieciowych, które kryją się za nazwą hosta */
 };
 ```
-Do tworzenia takiej struktury służy funkcja `gethostbyname`, która zwraca wskaźnik do struktury `hostent`.
+Do tworzenia takiej struktury służy funkcja `gethostbyname()`, która zwraca wskaźnik do struktury `hostent`.
 ```c
 struct hostent * gethostbyname (const char *name)
 ```
@@ -139,7 +141,7 @@ int connect (int socket, /* gniazdo po stronie klienta */
 	     struct sockaddr *addr, /* adres serwera */
 	     socklen_t length) /* długość adresu serwera */
 ```
-Na końcu dokonujemy komunikacji z serwerem opierając się na funkcjach `read` oraz `write`. Deskryptor pliku dla obu funkcji to gniazdo klienta.
+Na końcu dokonujemy komunikacji z serwerem opierając się na funkcjach `read()` oraz `write()`. Deskryptor pliku dla obu funkcji to gniazdo klienta.
 ## W SKRÓCIE
 Po stronie **klienta** należy:
 1. Utworzyć gniazdo przy pomocy `socket()`
