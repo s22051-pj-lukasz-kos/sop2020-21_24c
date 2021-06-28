@@ -44,8 +44,8 @@ Aby moć zastosować funkcje związane z gniazdami oraz stworzyć gniazdo, nale�
 Gniazdo tworzymy funkcją `socket`
 ```c
 int socket (int namespace, /* PF_LOCAL (lokalna przestrzeń nazw) lub PF_INET (internetowa przestrzeń nazw) */
-			int style, /* rodzaje komunikacji, na nasze potrzeby SOCK_STREAM */
-			int protocol) /* 0 oznacza domyślny protokół */
+	    int style, /* rodzaje komunikacji, na nasze potrzeby SOCK_STREAM */
+	    int protocol) /* 0 oznacza domyślny protokół */
 ```
 `socket()` zwraca deskryptor pliku do gniazda. Jeśli operacja się nie powiedzie to zwróci -1.
 
@@ -136,11 +136,11 @@ Potem definiujemy format adresu po stronie SERWERA i jego port (wykorzystując s
 Następnie należy połączyć gniazdo klienta z adresem serwera używając connect().
 ```c
 int connect (int socket, /* gniazdo po stronie klienta */
-			 struct sockaddr *addr, /* adres serwera */
-			 socklen_t length) /* długość adresu serwera */
+	     struct sockaddr *addr, /* adres serwera */
+	     socklen_t length) /* długość adresu serwera */
 ```
 Na końcu dokonujemy komunikacji z serwerem opierając się na funkcjach `read` oraz `write`. Deskryptor pliku dla obu funkcji to gniazdo klienta.
-## W SKRÓCIE.
+## W SKRÓCIE
 Po stronie **klienta** należy:
 1. Utworzyć gniazdo przy pomocy `socket()`
 2. Połączyć gniazdo z adresem serwera używając `connect()`
